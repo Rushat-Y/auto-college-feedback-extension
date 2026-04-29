@@ -12,41 +12,204 @@
         "Great structure and excellent delivery."
     ];
 
-    // Logic 1 (Radios): Select the last option for highest score
-    const radios = document.querySelectorAll('input[type="radio"]');
-    const groupedRadios = {};
+    function setNativeValue(element, value) {
+        const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
+        const prototype = Object.getPrototypeOf(element);
+        const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+        
+        if (prototypeValueSetter && valueSetter !== prototypeValueSetter) {
+            prototypeValueSetter.call(element, value);
+        } else if (valueSetter) {
+            valueSetter.call(element, value);
+        } else {
+            element.value = value;
+        }
+        
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // ==========================================
+    // SMART RADIO SCORING LOGIC
+    // ==========================================
     
-    // Group radios by their name attribute
-    radios.forEach(radio => {
-        const name = radio.name;
-        if (name) {
-            if (!groupedRadios[name]) {
-                groupedRadios[name] = [];
+    // Extracts visible text or aria-labels from a radio button
+    function getRadioText(radio) {
+        let text = "";
+        
+        const ariaLabel = radio.getAttribute('aria-label');
+        if (ariaLabel) text += ariaLabel + " ";
+        
+        if (radio.tagName.toLowerCase() === 'input') {
+            const val = radio.value;
+            // Ignore internal generic values like "on"
+            if (val && val !== 'on' && !val.startsWith('option')) {
+                text += val + " ";
             }
-            groupedRadios[name].push(radio);
         }
-    });
-
-    // Click the last radio button in each group
-    Object.keys(groupedRadios).forEach(name => {
-        const group = groupedRadios[name];
-        if (group && group.length > 0) {
-            const lastRadio = group[group.length - 1];
-            lastRadio.click();
-        }
-    });
-
-    // Logic 2 (Textareas): Fill with a random positive message
-    const textareas = document.querySelectorAll('textarea');
-    textareas.forEach(textarea => {
-        // Check if textarea is active and visible
-        if (!textarea.disabled && textarea.style.display !== 'none' && !textarea.readOnly) {
-            const randomMsg = msgs[Math.floor(Math.random() * msgs.length)];
-            textarea.value = randomMsg;
+        
+        const label = radio.closest('label');
+        if (label) text += label.innerText + " ";
+        
+        if (radio.getAttribute('role') === 'radio') {
+            text += radio.innerText + " ";
             
-            // Dispatch events to trigger any JS listeners on the page
-            textarea.dispatchEvent(new Event('input', { bubbles: true }));
-            textarea.dispatchEvent(new Event('change', { bubbles: true }));
+            const labelledBy = radio.getAttribute('aria-labelledby');
+            if (labelledBy) {
+                const ids = labelledBy.split(' ');
+                ids.forEach(id => {
+                    const labelEl = document.getElementById(id);
+                    if (labelEl) text += labelEl.innerText + " ";
+                });
+            }
+        }
+        
+        return text.trim().toLowerCase();
+    }
+
+    // Assigns a "positivity score" to a string of text
+    function getScore(text) {
+        if (!text) return 0;
+        let score = 0;
+        
+        // Extremely Positive
+        if (text.includes('strongly agree')) score += 20;
+        else if (text.includes('agree')) score += 10;
+        
+        if (text.includes('very satisfied')) score += 20;
+        else if (text.includes('satisfied') && !text.includes('dissatisfied')) score += 10;
+        
+        if (text.includes('excellent')) score += 20;
+        if (text.includes('good') || text.includes('great')) score += 10;
+        
+        if (text === 'yes' || text.startsWith('yes ') || text.startsWith('yes,')) score += 20;
+        if (text.includes('always')) score += 10;
+        if (text.includes('often')) score += 5;
+        
+        if (text.includes('very likely')) score += 20;
+        else if (text.includes('likely') && !text.includes('unlikely')) score += 10;
+
+        // Negative
+        if (text.includes('strongly disagree')) score -= 20;
+        else if (text.includes('disagree')) score -= 10;
+        
+        if (text.includes('very dissatisfied')) score -= 20;
+        else if (text.includes('dissatisfied')) score -= 10;
+        
+        if (text.includes('poor') || text.includes('bad') || text.includes('terrible')) score -= 20;
+        
+        if (text === 'no' || text.startsWith('no ') || text.startsWith('no,')) score -= 20;
+        if (text.includes('never')) score -= 10;
+        if (text.includes('rarely')) score -= 5;
+        
+        if (text.includes('very unlikely')) score -= 20;
+        else if (text.includes('unlikely')) score -= 10;
+
+        // Neutral
+        if (text.includes('not sure') || text.includes('neutral') || text.includes('neither')) score -= 1;
+
+        // Numeric parsing fallback
+        if (score === 0) {
+            const numMatch = text.match(/\b\d+\b/);
+            if (numMatch) {
+                score = parseInt(numMatch[0]);
+            }
+        }
+        
+        return score;
+    }
+
+    // Evaluates a group of radio buttons and clicks the best one
+    function clickBestRadio(group) {
+        if (group.length === 0) return false;
+        
+        let bestRadio = group[group.length - 1]; // Default to last if all scores are 0
+        let maxScore = -Infinity;
+        
+        group.forEach(radio => {
+            const text = getRadioText(radio);
+            const score = getScore(text);
+            
+            // If the score is higher (or equal, so the right-most option wins ties)
+            if (score >= maxScore) {
+                maxScore = score;
+                bestRadio = radio;
+            }
+        });
+        
+        // Execute the click
+        if (bestRadio.offsetHeight === 0 || bestRadio.offsetWidth === 0) {
+             const label = bestRadio.closest('label') || bestRadio.parentElement;
+             if (label) label.click();
+             else bestRadio.click();
+        } else {
+             bestRadio.click();
+        }
+        return true;
+    }
+
+    let clickCount = 0;
+    let textCount = 0;
+
+    // --- Strategy A: Standard HTML Radio Buttons ---
+    const nativeRadios = document.querySelectorAll('input[type="radio"]');
+    const groupedNativeRadios = {};
+    
+    nativeRadios.forEach(radio => {
+        const name = radio.name || radio.getAttribute('name');
+        if (name) {
+            if (!groupedNativeRadios[name]) groupedNativeRadios[name] = [];
+            groupedNativeRadios[name].push(radio);
         }
     });
+
+    Object.values(groupedNativeRadios).forEach(group => {
+        if (clickBestRadio(group)) clickCount++;
+    });
+
+    // --- Strategy B: ARIA Roles ---
+    const ariaRadios = document.querySelectorAll('[role="radio"]');
+    const ariaGroups = {};
+    
+    ariaRadios.forEach(radio => {
+        const group = radio.closest('[role="radiogroup"]');
+        if (group) {
+            if (!group.dataset.autoId) group.dataset.autoId = Math.random().toString(36).substr(2, 9);
+            const groupId = group.dataset.autoId;
+            
+            if (!ariaGroups[groupId]) ariaGroups[groupId] = [];
+            ariaGroups[groupId].push(radio);
+        }
+    });
+
+    Object.values(ariaGroups).forEach(group => {
+        if (clickBestRadio(group)) clickCount++;
+    });
+
+    // ==========================================
+    // LOGIC 2: TEXT INPUTS
+    // ==========================================
+    const textElements = document.querySelectorAll('textarea, input[type="text"]');
+    textElements.forEach(el => {
+        const isVisible = el.offsetWidth > 0 && el.offsetHeight > 0;
+        const isEditable = !el.disabled && !el.readOnly;
+        
+        if (isVisible && isEditable) {
+            const randomMsg = msgs[Math.floor(Math.random() * msgs.length)];
+            setNativeValue(el, randomMsg);
+            textCount++;
+        }
+    });
+
+    const contentEditables = document.querySelectorAll('[contenteditable="true"]');
+    contentEditables.forEach(el => {
+        if (el.tagName.toLowerCase() !== 'body') {
+            const randomMsg = msgs[Math.floor(Math.random() * msgs.length)];
+            el.innerText = randomMsg;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            textCount++;
+        }
+    });
+
+    console.log(`Auto-Feedback: Smartly filled ${clickCount} radio groups and ${textCount} text fields.`);
 })();
