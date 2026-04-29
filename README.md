@@ -18,9 +18,31 @@ A smart, lightweight browser extension designed to automate the process of filli
 4. Select the folder containing this extension's files.
 
 ### For Firefox
+By default, the source code is structured for Chromium. To make it work seamlessly on Firefox or package it for the Mozilla Add-on Store, you need to ensure two things in `manifest.json`:
+
+1. **Add Firefox-Specific Settings:** Firefox strictly requires an explicit extension ID and a data collection declaration. Ensure this block is in your `manifest.json`:
+   ```json
+   "browser_specific_settings": {
+     "gecko": {
+       "id": "autofeedback@rushat.com",
+       "strict_min_version": "142.0",
+       "data_collection_permissions": {
+         "required": ["none"]
+       }
+     }
+   }
+   ```
+2. **Swap the Background Worker:** Chrome requires `"service_worker"`, but if you are testing locally on Firefox and encounter a "service worker disabled" error, you must swap the background declaration to use the `"scripts"` array instead:
+   ```json
+   "background": {
+     "scripts": ["background.js"]
+   }
+   ```
+
+**To load it locally:**
 1. Go to `about:debugging#/runtime/this-firefox`.
 2. Click **Load Temporary Add-on...**.
-3. Select the `manifest.json` file from this extension's folder.
+3. Select the `manifest.json` file from your configured Firefox folder.
 
 ## Usage
 1. Navigate to your college's feedback form or survey.
