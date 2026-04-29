@@ -1,0 +1,9 @@
+# Mac OS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# General
+*.log
