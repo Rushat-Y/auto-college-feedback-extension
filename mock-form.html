@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Faculty Feedback Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background-color: #f9f9f9; }
+        .container { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        .question { margin-bottom: 25px; }
+        .question label.title { display: block; font-weight: bold; margin-bottom: 10px; }
+        .options { display: flex; gap: 15px; }
+        .option { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; min-height: 80px; box-sizing: border-box; font-family: Arial, sans-serif; }
+        textarea:disabled { background-color: #e9e9e9; cursor: not-allowed; }
+        .submit-btn { background-color: #4CAF50; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; display: block; width: 100%; margin-top: 20px; transition: background-color 0.3s; }
+        .submit-btn:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Course & Faculty Feedback</h1>
+    <p style="text-align: center; color: #666; margin-bottom: 30px;">Test the Auto-Feedback extension on this mock form!</p>
+    
+    <!-- Radio Group 1 -->
+    <div class="question">
+        <label class="title">1. How would you rate the instructor's knowledge of the subject?</label>
+        <div class="options">
+            <label class="option"><input type="radio" name="q1" value="1"> 1 (Poor)</label>
+            <label class="option"><input type="radio" name="q1" value="2"> 2</label>
+            <label class="option"><input type="radio" name="q1" value="3"> 3</label>
+            <label class="option"><input type="radio" name="q1" value="4"> 4</label>
+            <label class="option"><input type="radio" name="q1" value="5"> 5 (Excellent)</label>
+        </div>
+    </div>
+
+    <!-- Radio Group 2 -->
+    <div class="question">
+        <label class="title">2. Was the course material well organized?</label>
+        <div class="options">
+            <label class="option"><input type="radio" name="q2" value="1"> Strongly Disagree</label>
+            <label class="option"><input type="radio" name="q2" value="2"> Disagree</label>
+            <label class="option"><input type="radio" name="q2" value="3"> Neutral</label>
+            <label class="option"><input type="radio" name="q2" value="4"> Agree</label>
+            <label class="option"><input type="radio" name="q2" value="5"> Strongly Agree</label>
+        </div>
+    </div>
+
+    <!-- Radio Group 3 -->
+    <div class="question">
+        <label class="title">3. How effective were the teaching methods?</label>
+        <div class="options">
+            <label class="option"><input type="radio" name="q3" value="1"> 1</label>
+            <label class="option"><input type="radio" name="q3" value="2"> 2</label>
+            <label class="option"><input type="radio" name="q3" value="3"> 3</label>
+            <label class="option"><input type="radio" name="q3" value="4"> 4</label>
+            <label class="option"><input type="radio" name="q3" value="5"> 5</label>
+        </div>
+    </div>
+
+    <!-- Normal Textarea 1 -->
+    <div class="question">
+        <label class="title">4. What did you like most about this course?</label>
+        <textarea placeholder="Share your thoughts..."></textarea>
+    </div>
+
+    <!-- Normal Textarea 2 -->
+    <div class="question">
+        <label class="title">5. Any suggestions for improvement?</label>
+        <textarea placeholder="Any constructive feedback..."></textarea>
+    </div>
+    
+    <!-- Hidden textarea to test exclusion logic -->
+    <textarea style="display: none;">This should not be filled because it is hidden.</textarea>
+    
+    <!-- Disabled textarea to test exclusion logic -->
+    <div class="question">
+        <label class="title">Admin Comments (Read Only):</label>
+        <textarea disabled>This is disabled and shouldn't be filled by the extension.</textarea>
+    </div>
+
+    <button class="submit-btn" onclick="alert('Form submitted! (Mock)')">Submit Feedback</button>
+</div>
+
+</body>
+</html>
