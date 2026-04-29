@@ -29,11 +29,7 @@
         element.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
-    // ==========================================
-    // SMART RADIO SCORING LOGIC
-    // ==========================================
-    
-    // Extracts visible text or aria-labels from a radio button
+    // get text from the radio button or its label
     function getRadioText(radio) {
         let text = "";
         
@@ -42,7 +38,7 @@
         
         if (radio.tagName.toLowerCase() === 'input') {
             const val = radio.value;
-            // Ignore internal generic values like "on"
+            // ignore generic internal values like "on"
             if (val && val !== 'on' && !val.startsWith('option')) {
                 text += val + " ";
             }
@@ -67,12 +63,12 @@
         return text.trim().toLowerCase();
     }
 
-    // Assigns a "positivity score" to a string of text
+    // give a positivity score to the option text
     function getScore(text) {
         if (!text) return 0;
         let score = 0;
         
-        // Extremely Positive
+        // highly positive
         if (text.includes('strongly agree')) score += 20;
         else if (text.includes('agree')) score += 10;
         
@@ -89,7 +85,7 @@
         if (text.includes('very likely')) score += 20;
         else if (text.includes('likely') && !text.includes('unlikely')) score += 10;
 
-        // Negative
+        // negative
         if (text.includes('strongly disagree')) score -= 20;
         else if (text.includes('disagree')) score -= 10;
         
@@ -105,10 +101,10 @@
         if (text.includes('very unlikely')) score -= 20;
         else if (text.includes('unlikely')) score -= 10;
 
-        // Neutral
+        // neutral
         if (text.includes('not sure') || text.includes('neutral') || text.includes('neither')) score -= 1;
 
-        // Numeric parsing fallback
+        // fallback to number if no text keywords match
         if (score === 0) {
             const numMatch = text.match(/\b\d+\b/);
             if (numMatch) {
@@ -119,25 +115,25 @@
         return score;
     }
 
-    // Evaluates a group of radio buttons and clicks the best one
+    // find and click the best radio in a group
     function clickBestRadio(group) {
         if (group.length === 0) return false;
         
-        let bestRadio = group[group.length - 1]; // Default to last if all scores are 0
+        let bestRadio = group[group.length - 1]; // default to the last one if we can't tell
         let maxScore = -Infinity;
         
         group.forEach(radio => {
             const text = getRadioText(radio);
             const score = getScore(text);
             
-            // If the score is higher (or equal, so the right-most option wins ties)
+            // if score is higher, or equal (right-most wins ties)
             if (score >= maxScore) {
                 maxScore = score;
                 bestRadio = radio;
             }
         });
         
-        // Execute the click
+        // click it!
         if (bestRadio.offsetHeight === 0 || bestRadio.offsetWidth === 0) {
              const label = bestRadio.closest('label') || bestRadio.parentElement;
              if (label) label.click();
@@ -151,7 +147,7 @@
     let clickCount = 0;
     let textCount = 0;
 
-    // --- Strategy A: Standard HTML Radio Buttons ---
+    // strategy 1: handle standard html radios
     const nativeRadios = document.querySelectorAll('input[type="radio"]');
     const groupedNativeRadios = {};
     
@@ -167,7 +163,7 @@
         if (clickBestRadio(group)) clickCount++;
     });
 
-    // --- Strategy B: ARIA Roles ---
+    // strategy 2: handle modern role="radio" (like ms forms)
     const ariaRadios = document.querySelectorAll('[role="radio"]');
     const ariaGroups = {};
     
@@ -186,9 +182,7 @@
         if (clickBestRadio(group)) clickCount++;
     });
 
-    // ==========================================
-    // LOGIC 2: TEXT INPUTS
-    // ==========================================
+    // logic 2: fill text inputs
     const textElements = document.querySelectorAll('textarea, input[type="text"]');
     textElements.forEach(el => {
         const isVisible = el.offsetWidth > 0 && el.offsetHeight > 0;
