@@ -11,3 +11,4 @@
 # Build & Assets
 *.zip
 auto-feedback.png
+build.sh

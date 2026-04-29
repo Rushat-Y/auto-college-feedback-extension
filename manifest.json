@@ -16,7 +16,8 @@
   },
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "icons": {
     "16": "icon16.png",
@@ -29,6 +30,18 @@
       "16": "icon16.png",
       "48": "icon48.png",
       "128": "icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "auto-fill-form": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+F",
+        "mac": "Command+Shift+F"
+      },
+      "description": "Auto Fill Form"
     }
   }
 }
