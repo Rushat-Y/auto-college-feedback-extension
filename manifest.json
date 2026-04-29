@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Feedback Filler",
+  "version": "1.0",
+  "description": "Automatically fills college faculty and course feedback forms.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
