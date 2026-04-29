@@ -7,3 +7,7 @@
 
 # General
 *.log
+
+# Build & Assets
+*.zip
+auto-feedback.png
