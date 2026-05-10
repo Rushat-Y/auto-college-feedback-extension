@@ -12,3 +12,4 @@
 *.zip
 auto-feedback.png
 build.sh
+.gitignore

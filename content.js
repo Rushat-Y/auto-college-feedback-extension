@@ -193,7 +193,7 @@
     });
 
     //logic2:fill text inputs
-    const textElements = document.querySelectorAll('textarea, input[type="text"]');
+    const textElements = document.querySelectorAll('textarea, input[type="text"], input:not([type])');
     textElements.forEach(el => {
         const isVisible = el.offsetWidth > 0 && el.offsetHeight > 0;
         const isEditable = !el.disabled && !el.readOnly;
